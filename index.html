@@ -1089,9 +1089,82 @@ function generic(title, body='Cette page sera complétée à la prochaine étape
 }
 
 function squad(){
-  async function loadSquad(){
 
-  if(currentSession){
+  const connected = !!state.role;
+
+  return `
+    <header class="hero">
+      <button class="top-back" onclick="go('home')">
+        ← Retour
+      </button>
+
+      <h1>Effectifs</h1>
+
+      <p>
+        Les équipes du FC Bouvigny-Boyeffles
+      </p>
+    </header>
+
+    <main class="page">
+
+      ${
+        connected
+
+        ? `
+          <div id="squad-live">
+            <div class="card">
+              Chargement des effectifs...
+            </div>
+          </div>
+        `
+
+        : `
+          <div class="card effectif-private">
+
+            <img
+              src="./club-logo.png"
+              class="effectif-lock-logo"
+              alt="FCB">
+
+            <h2>Effectifs FCB</h2>
+
+            <p class="muted">
+              Les noms, photos, numéros et postes
+              des joueurs sont réservés aux joueurs
+              et dirigeants du club.
+            </p>
+
+            <button
+              class="btn-primary"
+              style="width:100%;margin-top:12px"
+              onclick="go('login')">
+              Se connecter
+            </button>
+
+          </div>
+
+          <h2 class="section-title">
+            Nos équipes
+          </h2>
+
+          <div id="public-team-list">
+            <div class="card">
+              Chargement des équipes...
+            </div>
+          </div>
+        `
+      }
+
+    </main>
+
+    ${nav('teams')}
+  `;
+}
+
+
+async function loadSquad(){
+
+  if(state.role){
     await loadPrivateSquad();
   }else{
     await loadPublicTeams();
