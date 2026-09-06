@@ -87,7 +87,162 @@
 .public-match-card .big-score{
   margin:12px 0;
 }
+<style>
 
+/* ===== EFFECTIFS FCB ===== */
+
+.effectif-private{
+  text-align:center;
+  padding:28px 22px;
+}
+
+.effectif-lock-logo{
+  width:100px;
+  height:100px;
+  object-fit:contain;
+  margin-bottom:12px;
+}
+
+
+.team-public-card{
+  min-height:130px;
+  border-radius:24px;
+  padding:22px;
+  background:linear-gradient(
+    145deg,
+    #2d6df3,
+    #123b9a
+  );
+  color:white;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+
+  box-shadow:
+    0 12px 28px
+    rgba(8,26,74,.12);
+}
+
+.team-public-card strong{
+  font-size:20px;
+}
+
+.team-public-card span{
+  margin-top:6px;
+  font-size:13px;
+  color:#d7e1ff;
+}
+
+.team-public-icon{
+  font-size:28px;
+  margin-bottom:10px;
+}
+
+
+.squad-section{
+  margin-bottom:28px;
+}
+
+
+.squad-team-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:14px;
+}
+
+
+.squad-team-title h2{
+  margin:2px 0 0;
+  color:var(--navy);
+  font-size:26px;
+}
+
+
+.squad-team-kicker{
+  color:var(--blue2);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:1.5px;
+}
+
+
+.squad-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+
+.squad-player-card{
+  background:white;
+  border-radius:22px;
+  overflow:hidden;
+
+  box-shadow:
+    0 10px 26px
+    rgba(8,26,74,.08);
+
+  border:
+    1px solid
+    rgba(18,59,154,.08);
+}
+
+
+.squad-photo{
+  display:block;
+  width:100%;
+  aspect-ratio:1 / 1;
+  object-fit:cover;
+  background:#eaf0ff;
+}
+
+
+.squad-photo-empty{
+  display:grid;
+  place-items:center;
+  font-size:54px;
+}
+
+
+.squad-player-info{
+  padding:13px;
+}
+
+
+.squad-player-info strong{
+  display:block;
+  color:var(--navy);
+  font-size:16px;
+  line-height:1.2;
+}
+
+
+.squad-player-meta{
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+
+  margin-top:8px;
+
+  color:#607099;
+  font-size:12px;
+}
+
+
+@media(max-width:360px){
+
+  .squad-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
 </style>
 </style>
 <style>
@@ -934,13 +1089,347 @@ function generic(title, body='Cette page sera complétée à la prochaine étape
 }
 
 function squad(){
-  return `<header class="hero"><button class="top-back" onclick="go('home')">← Retour</button><h1>Effectif Senior A</h1></header>
-  <main class="page"><div class="list">
-  ${players.map(p=>`<div class="card player-card">
-    <div class="avatar"></div>
-    <div><strong>${p.name}</strong><div class="muted">#${p.number} • ${p.position}</div><div class="small">${p.team}</div></div>
-  </div>`).join('')}
-  </div></main>${nav('teams')}`;
+  async function loadSquad(){
+
+  if(currentSession){
+    await loadPrivateSquad();
+  }else{
+    await loadPublicTeams();
+  }
+
+}
+
+
+async function loadPublicTeams(){
+
+  const box =
+    document.getElementById('public-team-list');
+
+  if(!box) return;
+
+  try{
+
+    const equipes = await publicApi(
+      '/rest/v1/equipes?select=id,nom&actif=eq.true&order=nom.asc'
+    );
+
+    if(!equipes.length){
+
+      box.innerHTML = `
+        <div class="card">
+          Aucune équipe disponible.
+        </div>
+      `;
+
+      return;
+    }
+
+
+    box.innerHTML = `
+      <div class="grid-2">
+
+        ${equipes.map((equipe,index)=>`
+
+          <div class="team-public-card
+                      ${index % 2 ? 'blue-team' : ''}">
+
+            <div class="team-public-icon">
+              ⚽
+            </div>
+
+            <strong>
+              ${escapeHtml(equipe.nom)}
+            </strong>
+
+            <span>
+              FC Bouvigny-Boyeffles
+            </span>
+
+          </div>
+
+        `).join('')}
+
+      </div>
+    `;
+
+  }catch(error){
+
+    box.innerHTML = `
+      <div class="card">
+        Impossible de charger les équipes.
+      </div>
+    `;
+
+  }
+
+}
+
+
+async function loadPrivateSquad(){
+
+  const box =
+    document.getElementById('squad-live');
+
+  if(!box) return;
+
+
+  try{
+
+    const [playersResponse,teamsResponse] =
+      await Promise.all([
+
+        sbFetch(
+          '/rest/v1/joueurs?select=id,prenom,nom,numero,poste,photo_url,actif,equipe_id&actif=eq.true&order=nom.asc,prenom.asc'
+        ),
+
+        sbFetch(
+          '/rest/v1/equipes?select=id,nom&actif=eq.true&order=nom.asc'
+        )
+
+      ]);
+
+
+    const joueurs =
+      await playersResponse.json();
+
+    const equipes =
+      await teamsResponse.json();
+
+
+    if(!playersResponse.ok){
+
+      throw new Error(
+        joueurs.message ||
+        'Impossible de charger les joueurs.'
+      );
+
+    }
+
+
+    if(!teamsResponse.ok){
+
+      throw new Error(
+        equipes.message ||
+        'Impossible de charger les équipes.'
+      );
+
+    }
+
+
+    if(!equipes.length){
+
+      box.innerHTML = `
+        <div class="card">
+          Aucune équipe disponible.
+        </div>
+      `;
+
+      return;
+    }
+
+
+    box.innerHTML = equipes.map(equipe=>{
+
+      const joueursEquipe =
+        joueurs.filter(
+          joueur =>
+            Number(joueur.equipe_id) ===
+            Number(equipe.id)
+        );
+
+
+      return `
+
+        <section class="squad-section">
+
+          <div class="squad-team-title">
+
+            <div>
+              <span class="squad-team-kicker">
+                FCB
+              </span>
+
+              <h2>
+                ${escapeHtml(equipe.nom)}
+              </h2>
+            </div>
+
+            <span class="badge blue">
+              ${joueursEquipe.length}
+              joueur${joueursEquipe.length > 1 ? 's' : ''}
+            </span>
+
+          </div>
+
+
+          ${
+            joueursEquipe.length
+
+            ? `
+              <div class="squad-grid">
+
+                ${joueursEquipe.map(joueur=>`
+
+                  <div class="squad-player-card">
+
+                    ${
+                      joueur.photo_url
+
+                      ? `
+                        <img
+                          src="${escapeHtml(joueur.photo_url)}"
+                          class="squad-photo"
+                          alt="${escapeHtml(joueur.prenom)}
+                               ${escapeHtml(joueur.nom)}">
+                      `
+
+                      : `
+                        <div class="squad-photo
+                                    squad-photo-empty">
+                          👤
+                        </div>
+                      `
+                    }
+
+
+                    <div class="squad-player-info">
+
+                      <strong>
+                        ${escapeHtml(joueur.prenom)}
+                        ${escapeHtml(joueur.nom)}
+                      </strong>
+
+
+                      <div class="squad-player-meta">
+
+                        <span>
+                          #${joueur.numero ?? '—'}
+                        </span>
+
+                        <span>
+                          ${escapeHtml(
+                            joueur.poste ||
+                            'Poste non renseigné'
+                          )}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                `).join('')}
+
+              </div>
+            `
+
+            : `
+              <div class="card">
+                <span class="muted">
+                  Aucun joueur dans cette équipe.
+                </span>
+              </div>
+            `
+          }
+
+        </section>
+
+      `;
+
+    }).join('');
+
+
+  }catch(error){
+
+    box.innerHTML = `
+
+      <div class="card">
+
+        <strong>
+          Impossible de charger les effectifs.
+        </strong>
+
+        <p class="muted">
+          ${escapeHtml(error.message)}
+        </p>
+
+      </div>
+    `;
+
+  }
+
+  }
+
+  const connected = !!currentSession;
+
+  return `
+    <header class="hero">
+      <button class="top-back" onclick="go('home')">
+        ← Retour
+      </button>
+
+      <h1>Effectifs</h1>
+
+      <p>
+        Les équipes du FC Bouvigny-Boyeffles
+      </p>
+    </header>
+
+    <main class="page">
+
+      ${
+        connected
+
+        ? `
+          <div id="squad-live">
+            <div class="card">
+              Chargement des effectifs...
+            </div>
+          </div>
+        `
+
+        : `
+          <div class="card effectif-private">
+
+            <img
+              src="./club-logo.png"
+              class="effectif-lock-logo"
+              alt="FCB">
+
+            <h2>Effectifs FCB</h2>
+
+            <p class="muted">
+              Les noms, photos, numéros et postes
+              des joueurs sont réservés aux joueurs
+              et dirigeants du club.
+            </p>
+
+            <button
+              class="btn-primary"
+              style="width:100%;margin-top:12px"
+              onclick="go('login')">
+              Se connecter
+            </button>
+
+          </div>
+
+          <h2 class="section-title">
+            Nos équipes
+          </h2>
+
+          <div id="public-team-list">
+            <div class="card">
+              Chargement des équipes...
+            </div>
+          </div>
+        `
+      }
+
+    </main>
+
+    ${nav('teams')}
+  `;
 }
 function publicMatchesPage(){
   return `
@@ -1260,6 +1749,7 @@ function render(){
   if(state.page==='managerStats') setTimeout(initStats,0);
   if(state.page==='managerNotes') setTimeout(initNotes,0);
   if(state.page==='player') setTimeout(loadPlayerLive,0);
+  if(state.page==='squad') setTimeout(loadSquad,0);
 }
 function go(page){state.page=page;render()}
 function demo(role){state.role=role;state.page=role==='player'?'player':'manager';render()}
