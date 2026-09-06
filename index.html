@@ -1154,13 +1154,16 @@ async function loadPublicTeams(){
 
   }catch(error){
 
-    box.innerHTML = `
-      <div class="card">
-        Impossible de charger les équipes.
-      </div>
-    `;
+  console.error('Erreur Effectifs publics :', error);
 
-  }
+  box.innerHTML = `
+    <div class="card">
+      <strong>Erreur Effectifs</strong>
+      <p class="muted">
+        ${escapeHtml(error.message || String(error))}
+      </p>
+    </div>
+  `;
 
 }
 
