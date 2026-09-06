@@ -45,7 +45,50 @@
   }
 
 }
+<style>
 
+.public-match-card{
+  margin-bottom:14px;
+}
+
+.public-fixture{
+  text-align:center;
+  padding:22px 0 18px;
+}
+
+.public-team{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  font-size:18px;
+}
+
+.public-match-logo{
+  width:64px;
+  height:64px;
+  object-fit:contain;
+}
+
+.public-opponent{
+  font-size:20px;
+  font-weight:800;
+}
+
+.public-match-info{
+  display:grid;
+  gap:8px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.15);
+  color:#cbd5f5;
+  font-size:14px;
+}
+
+.public-match-card .big-score{
+  margin:12px 0;
+}
+
+</style>
 </style>
 <style>
 
@@ -899,7 +942,293 @@ function squad(){
   </div>`).join('')}
   </div></main>${nav('teams')}`;
 }
+function publicMatchesPage(){
+  return `
+    <header class="hero">
+      <button class="top-back" onclick="go('home')">← Retour</button>
+      <h1>Matchs</h1>
+      <p>Calendrier et résultats du FCB</p>
+    </header>
 
+    <main class="page">
+
+      <h2 class="section-title">Prochains matchs</h2>
+
+      <div id="public-upcoming">
+        <div class="card">
+          Chargement des prochains matchs...
+        </div>
+      </div>
+
+      <h2 class="section-title">Derniers résultats</h2>
+
+      <div id="public-results">
+        <div class="card">
+          Chargement des résultats...
+        </div>
+      </div>
+
+    </main>
+
+    ${nav('matches')}
+  `;
+}
+
+
+async function publicApi(path){
+
+  const response = await fetch(
+    `${SUPABASE_URL}${path}`,
+    {
+      headers:{
+        'apikey': SUPABASE_KEY
+      }
+    }
+  );
+
+  const data = await response.json();
+
+  if(!response.ok){
+    throw new Error(
+      data.message ||
+      'Impossible de charger les données.'
+    );
+  }
+
+  return data;
+}
+
+
+function publicMatchDate(value){
+
+  if(!value) return '';
+
+  return new Date(value).toLocaleString(
+    'fr-FR',
+    {
+      weekday:'long',
+      day:'numeric',
+      month:'long',
+      hour:'2-digit',
+      minute:'2-digit'
+    }
+  );
+
+}
+
+
+function publicMatchCard(match,equipe,result=null){
+
+  const adversaire =
+    escapeHtml(match.adversaire || 'Adversaire à venir');
+
+  const equipeNom =
+    escapeHtml(equipe?.nom || 'Équipe FCB');
+
+  const lieu =
+    escapeHtml(match.lieu || 'Lieu à venir');
+
+  const domicile =
+    match.domicile === true;
+
+  let scoreHtml = `
+    <div class="big-score">VS</div>
+  `;
+
+  if(result){
+
+    scoreHtml = `
+      <div class="big-score">
+        ${result.score_fcbb}
+        -
+        ${result.score_adversaire}
+      </div>
+    `;
+
+  }
+
+  return `
+    <div class="card match-card public-match-card">
+
+      <div class="row">
+
+        <strong>
+          ${result ? 'RÉSULTAT' : 'PROCHAIN MATCH'}
+        </strong>
+
+        <span class="badge blue">
+          ${equipeNom}
+        </span>
+
+      </div>
+
+      <div class="public-fixture">
+
+        <div class="public-team">
+
+          <img
+            src="./club-logo.png"
+            class="public-match-logo"
+            alt="FCB">
+
+          <strong>
+            FC Bouvigny-Boyeffles
+          </strong>
+
+        </div>
+
+        ${scoreHtml}
+
+        <div class="public-opponent">
+          ${adversaire}
+        </div>
+
+      </div>
+
+      <div class="public-match-info">
+
+        <span>
+          📅 ${publicMatchDate(match.date_heure)}
+        </span>
+
+        <span>
+          📍 ${lieu}
+        </span>
+
+        <span>
+          ${domicile ? '🏠 Domicile' : '🚌 Extérieur'}
+        </span>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+async function loadPublicMatches(){
+
+  const upcomingBox =
+    document.getElementById('public-upcoming');
+
+  const resultsBox =
+    document.getElementById('public-results');
+
+  if(!upcomingBox || !resultsBox) return;
+
+  try{
+
+    const [equipes,matches,results] =
+      await Promise.all([
+
+        publicApi(
+          '/rest/v1/equipes?select=id,nom&actif=eq.true'
+        ),
+
+        publicApi(
+          '/rest/v1/evenements?select=id,equipe_id,type,date_heure,lieu,adversaire,domicile,titre&type=eq.match&order=date_heure.asc'
+        ),
+
+        publicApi(
+          '/rest/v1/resultats?select=evenement_id,score_fcbb,score_adversaire'
+        )
+
+      ]);
+
+
+    const equipesMap =
+      Object.fromEntries(
+        equipes.map(e => [e.id,e])
+      );
+
+
+    const resultsMap =
+      Object.fromEntries(
+        results.map(r => [r.evenement_id,r])
+      );
+
+
+    const maintenant = new Date();
+
+
+    const prochains =
+      matches
+        .filter(m =>
+          new Date(m.date_heure) >= maintenant
+        )
+        .slice(0,10);
+
+
+    const termines =
+      matches
+        .filter(m =>
+          resultsMap[m.id]
+        )
+        .sort(
+          (a,b) =>
+            new Date(b.date_heure) -
+            new Date(a.date_heure)
+        )
+        .slice(0,10);
+
+
+    upcomingBox.innerHTML =
+      prochains.length
+
+      ? `<div class="list">
+          ${prochains.map(m =>
+            publicMatchCard(
+              m,
+              equipesMap[m.equipe_id]
+            )
+          ).join('')}
+        </div>`
+
+      : `
+        <div class="card">
+          Aucun prochain match programmé.
+        </div>
+      `;
+
+
+    resultsBox.innerHTML =
+      termines.length
+
+      ? `<div class="list">
+          ${termines.map(m =>
+            publicMatchCard(
+              m,
+              equipesMap[m.equipe_id],
+              resultsMap[m.id]
+            )
+          ).join('')}
+        </div>`
+
+      : `
+        <div class="card">
+          Aucun résultat disponible.
+        </div>
+      `;
+
+
+  }catch(error){
+
+    upcomingBox.innerHTML = `
+      <div class="card">
+        Impossible de charger les matchs.
+        <br>
+        <span class="muted">
+          ${escapeHtml(error.message)}
+        </span>
+      </div>
+    `;
+
+    resultsBox.innerHTML = '';
+
+  }
+
+}
 function render(){
   let html='';
   if(state.page==='home') html=home();
@@ -915,12 +1244,13 @@ function render(){
   else if(state.page==='managerStats') html=managerStatsPage();
   else if(state.page==='managerNotes') html=managerNotesPage();
   else if(state.page==='squad') html=squad();
-  else if(state.page==='matches') html=generic('Matchs','Prochains matchs et résultats du club.');
+  else if(state.page==='matches') html=publicMatchesPage();
   else if(state.page==='teams') html=generic('Équipes',teams.join(' • '));
   else if(state.page==='rankings') html=generic('Classements','Classements des équipes et classements internes des buteurs/passeurs.');
   else if(state.page==='club') html=generic('Le Club',"Histoire du FC Bouvigny-Boyeffles, valeurs du club et informations pratiques.");
   document.getElementById('app').innerHTML=`<div class="app-shell">${html}</div>`;
   window.scrollTo(0,0);
+  if(state.page==='matches') setTimeout(loadPublicMatches,0);
   if(state.page==='managerPlayers') setTimeout(loadManagerPlayers,0);
   if(state.page==='managerEvents') setTimeout(initEvents,0);
   if(state.page==='managerAttendance') setTimeout(initAttendance,0);
