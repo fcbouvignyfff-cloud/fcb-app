@@ -14,7 +14,39 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Application du FC Bouvigny-Boyeffles">
+<style>
 
+/* ===== BANNIERE FCB ===== */
+
+.fcb-banner{
+  display:block;
+  width:calc(100% + 36px);
+  max-width:none;
+  margin-left:-18px;
+  margin-right:-18px;
+  margin-bottom:-28px;
+  height:auto;
+  object-fit:cover;
+  object-position:center;
+  border-radius:0 0 34px 34px;
+  box-shadow:0 12px 28px rgba(0,0,0,.20);
+}
+
+@media(max-width:430px){
+
+  .hero-top{
+    align-items:flex-start;
+  }
+
+  .fcb-banner{
+    width:calc(100% + 36px);
+    margin-left:-18px;
+    margin-right:-18px;
+  }
+
+}
+
+</style>
 <style>
 
 :root{
@@ -148,11 +180,16 @@ body{
   box-shadow:0 12px 34px rgba(8,26,74,.15);
 }
 .home-hero{
-  min-height:188px;
+  min-height:auto;
+  display:block;
+  padding-bottom:0;
+}
+  .hero-top{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:space-between;
   gap:14px;
+  padding-bottom:18px;
 }
 .brand-lockup{
   display:flex;
@@ -387,15 +424,38 @@ function nav(active='home'){
 
 function hero(){
   return `<header class="hero home-hero">
-    <div class="brand-lockup">
-      <img class="club-logo" src="./club-logo.png" alt="Logo FCB">
-      <div class="brand-copy">
-        <div class="brand-kicker">FCB</div>
-        <h1 class="club-title">FC Bouvigny-Boyeffles</h1>
-        <div class="brand-motto">Ensemble, plus forts.</div>
+
+    <div class="hero-top">
+
+      <div class="brand-lockup">
+        <img class="club-logo" src="./club-logo.png" alt="Logo FCB">
+
+        <div class="brand-copy">
+          <div class="brand-kicker">FCB</div>
+
+          <h1 class="club-title">
+            FC Bouvigny-Boyeffles
+          </h1>
+
+          <div class="brand-motto">
+            Ensemble, plus forts.
+          </div>
+        </div>
       </div>
+
+      <button
+        class="btn-primary hero-login"
+        onclick="go('login')">
+        Connexion
+      </button>
+
     </div>
-    <button class="btn-primary hero-login" onclick="go('login')">Connexion</button>
+
+    <img
+      class="fcb-banner"
+      src="./banniere-fcb.jpg"
+      alt="FC Bouvigny-Boyeffles">
+
   </header>`;
 }
 
