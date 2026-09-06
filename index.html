@@ -241,7 +241,206 @@
   }
 
 }
+<style>
 
+/* ===== CLASSEMENTS FCB ===== */
+
+.ranking-intro{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.ranking-logo{
+  width:70px;
+  height:70px;
+  object-fit:contain;
+}
+
+.ranking-intro strong{
+  font-size:20px;
+  color:var(--navy);
+}
+
+.ranking-intro p{
+  margin:5px 0 0;
+}
+
+
+.ranking-table{
+  display:grid;
+  gap:10px;
+}
+
+
+.ranking-head{
+  display:grid;
+  grid-template-columns:
+    34px
+    minmax(0,1fr)
+    32px
+    50px
+    48px;
+
+  gap:8px;
+
+  padding:
+    0 12px 8px;
+
+  color:#7180a6;
+
+  font-size:12px;
+  font-weight:900;
+
+  text-transform:uppercase;
+}
+
+
+.ranking-row{
+  display:grid;
+
+  grid-template-columns:
+    34px
+    minmax(0,1fr)
+    32px
+    50px
+    48px;
+
+  gap:8px;
+
+  align-items:center;
+
+  padding:14px 12px;
+
+  background:white;
+
+  border-radius:20px;
+
+  box-shadow:
+    0 8px 24px
+    rgba(8,26,74,.07);
+}
+
+
+.ranking-position{
+  width:30px;
+  height:30px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:10px;
+
+  background:var(--navy);
+
+  color:white;
+
+  font-weight:900;
+}
+
+
+.ranking-team{
+  display:flex;
+  align-items:center;
+  gap:9px;
+
+  min-width:0;
+}
+
+
+.ranking-team img{
+  width:38px;
+  height:38px;
+
+  object-fit:contain;
+}
+
+
+.ranking-team strong{
+  display:block;
+
+  color:var(--navy);
+
+  font-size:14px;
+}
+
+
+.ranking-team span{
+  display:block;
+
+  margin-top:3px;
+
+  color:#7d8baa;
+
+  font-size:11px;
+}
+
+
+.ranking-number{
+  text-align:center;
+
+  color:var(--navy);
+
+  font-weight:800;
+}
+
+
+.ranking-points{
+  display:grid;
+  place-items:center;
+
+  min-height:38px;
+
+  border-radius:12px;
+
+  background:var(--yellow);
+
+  color:var(--navy);
+
+  font-weight:1000;
+}
+
+
+.ranking-detail{
+  display:flex;
+  justify-content:space-between;
+
+  margin:
+    -4px 12px
+    4px;
+
+  padding:
+    7px 10px;
+
+  color:#7180a6;
+
+  font-size:11px;
+}
+
+
+@media(max-width:370px){
+
+  .ranking-head,
+  .ranking-row{
+
+    grid-template-columns:
+      28px
+      minmax(0,1fr)
+      28px
+      42px
+      42px;
+
+    gap:5px;
+
+  }
+
+  .ranking-team img{
+    display:none;
+  }
+
+}
+
+</style>
 </style>
 </style>
 </style>
@@ -1794,6 +1993,365 @@ async function loadPublicMatches(){
   }
 
 }
+  function publicRankingsPage(){
+
+  return `
+    <header class="hero">
+
+      <button
+        class="top-back"
+        onclick="go('home')">
+        ← Retour
+      </button>
+
+      <h1>Classements</h1>
+
+      <p>
+        Bilan des équipes du FC Bouvigny-Boyeffles
+      </p>
+
+    </header>
+
+    <main class="page">
+
+      <div class="ranking-intro card">
+
+        <img
+          src="./club-logo.png"
+          class="ranking-logo"
+          alt="FCB">
+
+        <div>
+          <strong>
+            Saison FCB
+          </strong>
+
+          <p class="muted">
+            Classement calculé automatiquement
+            à partir des résultats enregistrés.
+          </p>
+        </div>
+
+      </div>
+
+
+      <h2 class="section-title">
+        Nos équipes
+      </h2>
+
+
+      <div id="public-rankings">
+
+        <div class="card">
+          Chargement des classements...
+        </div>
+
+      </div>
+
+    </main>
+
+    ${nav('rankings')}
+  `;
+
+}
+
+
+async function loadPublicRankings(){
+
+  const box =
+    document.getElementById('public-rankings');
+
+  if(!box) return;
+
+
+  try{
+
+    const [equipes,matches,results] =
+      await Promise.all([
+
+        publicApi(
+          '/rest/v1/equipes?select=id,nom&actif=eq.true&order=nom.asc'
+        ),
+
+        publicApi(
+          '/rest/v1/evenements?select=id,equipe_id,type,date_heure&type=eq.match'
+        ),
+
+        publicApi(
+          '/rest/v1/resultats?select=evenement_id,score_fcbb,score_adversaire'
+        )
+
+      ]);
+
+
+    const resultMap =
+      Object.fromEntries(
+        results.map(
+          result => [
+            Number(result.evenement_id),
+            result
+          ]
+        )
+      );
+
+
+    const classement =
+      equipes.map(equipe => {
+
+        const matchsEquipe =
+          matches.filter(match =>
+            Number(match.equipe_id) ===
+            Number(equipe.id) &&
+            resultMap[Number(match.id)]
+          );
+
+
+        let joues = 0;
+        let victoires = 0;
+        let nuls = 0;
+        let defaites = 0;
+        let bp = 0;
+        let bc = 0;
+
+
+        matchsEquipe.forEach(match => {
+
+          const resultat =
+            resultMap[Number(match.id)];
+
+          const butsFCB =
+            Number(resultat.score_fcbb || 0);
+
+          const butsAdversaire =
+            Number(resultat.score_adversaire || 0);
+
+
+          joues++;
+
+          bp += butsFCB;
+          bc += butsAdversaire;
+
+
+          if(butsFCB > butsAdversaire){
+
+            victoires++;
+
+          }else if(
+            butsFCB === butsAdversaire
+          ){
+
+            nuls++;
+
+          }else{
+
+            defaites++;
+
+          }
+
+        });
+
+
+        const points =
+          victoires * 3 +
+          nuls;
+
+
+        return {
+
+          id:equipe.id,
+
+          nom:equipe.nom,
+
+          joues,
+
+          victoires,
+
+          nuls,
+
+          defaites,
+
+          bp,
+
+          bc,
+
+          difference:
+            bp - bc,
+
+          points
+
+        };
+
+      });
+
+
+    classement.sort((a,b) => {
+
+      if(b.points !== a.points)
+        return b.points - a.points;
+
+      if(
+        b.difference !==
+        a.difference
+      )
+        return (
+          b.difference -
+          a.difference
+        );
+
+      return b.bp - a.bp;
+
+    });
+
+
+    if(!classement.length){
+
+      box.innerHTML = `
+        <div class="card">
+          Aucun classement disponible.
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    box.innerHTML = `
+
+      <div class="ranking-table">
+
+        <div class="ranking-head">
+
+          <span>#</span>
+
+          <span>
+            Équipe
+          </span>
+
+          <span>
+            J
+          </span>
+
+          <span>
+            Diff.
+          </span>
+
+          <span>
+            Pts
+          </span>
+
+        </div>
+
+
+        ${classement.map(
+          (equipe,index) => `
+
+          <div class="ranking-row">
+
+            <div class="ranking-position">
+              ${index + 1}
+            </div>
+
+
+            <div class="ranking-team">
+
+              <img
+                src="./club-logo.png"
+                alt="FCB">
+
+              <div>
+
+                <strong>
+                  ${escapeHtml(equipe.nom)}
+                </strong>
+
+                <span>
+                  ${equipe.victoires} V
+                  •
+                  ${equipe.nuls} N
+                  •
+                  ${equipe.defaites} D
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="ranking-number">
+              ${equipe.joues}
+            </div>
+
+
+            <div class="ranking-number">
+
+              ${
+                equipe.difference > 0
+                ? '+'
+                : ''
+              }
+
+              ${equipe.difference}
+
+            </div>
+
+
+            <div class="ranking-points">
+              ${equipe.points}
+            </div>
+
+          </div>
+
+
+          <div class="ranking-detail">
+
+            <span>
+              ⚽ ${equipe.bp} marqués
+            </span>
+
+            <span>
+              🥅 ${equipe.bc} encaissés
+            </span>
+
+          </div>
+
+        `).join('')}
+
+      </div>
+
+    `;
+
+
+  }catch(error){
+
+    console.error(
+      'Erreur Classements :',
+      error
+    );
+
+
+    box.innerHTML = `
+
+      <div class="card">
+
+        <strong>
+          Impossible de charger les classements.
+        </strong>
+
+        <p class="muted">
+          ${escapeHtml(
+            error.message ||
+            String(error)
+          )}
+        </p>
+
+      </div>
+
+    `;
+
+  }
+
+}
 function render(){
   let html='';
   if(state.page==='home') html=home();
@@ -1811,7 +2369,7 @@ function render(){
   else if(state.page==='squad') html=squad();
   else if(state.page==='matches') html=publicMatchesPage();
   else if(state.page==='teams') html=generic('Équipes',teams.join(' • '));
-  else if(state.page==='rankings') html=generic('Classements','Classements des équipes et classements internes des buteurs/passeurs.');
+  else if(state.page==='rankings') html=publicRankingsPage();
   else if(state.page==='club') html=generic('Le Club',"Histoire du FC Bouvigny-Boyeffles, valeurs du club et informations pratiques.");
   document.getElementById('app').innerHTML=`<div class="app-shell">${html}</div>`;
   window.scrollTo(0,0);
@@ -1826,6 +2384,7 @@ function render(){
   if(state.page==='managerNotes') setTimeout(initNotes,0);
   if(state.page==='player') setTimeout(loadPlayerLive,0);
   if(state.page==='squad') setTimeout(loadSquad,0);
+  if(state.page==='rankings') setTimeout(loadPublicRankings,0);
 }
 function go(page){state.page=page;render()}
 function demo(role){state.role=role;state.page=role==='player'?'player':'manager';render()}
