@@ -439,7 +439,21 @@
   }
 
 }
+.club-banner-wrap{
+  width:100%;
+  padding:24px 36px 10px;
+  box-sizing:border-box;
+}
 
+.club-banner{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:180px;
+  object-fit:cover;
+  object-position:center;
+  border-radius:28px;
+  }
 </style>
 </style>
 </style>
@@ -2551,10 +2565,13 @@ async function loadPublicRankings(){
     <main class="page">
 
 
-      <img
-        src="./banniere-fcb.jpg"
-        class="club-page-banner"
-        alt="FC Bouvigny-Boyeffles">
+      <div class="club-banner-wrap">
+  <img
+    src="./banniere-fcb.jpg"
+    class="club-banner"
+    alt="FC Bouvigny-Boyeffles"
+  >
+</div>
 
 
       <section class="card club-identity">
