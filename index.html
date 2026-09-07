@@ -1205,7 +1205,304 @@ function managerEventsPage(){return `${managerHeader('Événements','Entraîneme
 <div class="form-group"><label>Équipe</label><div id="ev-team"></div></div><div class="form-group"><label>Date et heure</label><input id="ev-date" type="datetime-local"></div><div class="form-group"><label>Lieu</label><input id="ev-place"></div>
 <div id="ev-match" class="hidden"><div class="form-group"><label>Adversaire</label><input id="ev-opp"></div><div class="form-group"><label>Domicile/extérieur</label><select id="ev-home"><option value="true">Domicile</option><option value="false">Extérieur</option></select></div></div>
 <div id="ev-msg" class="muted"></div><button class="btn-primary" style="width:100%;margin-top:10px" onclick="saveEvent()">Créer</button></div><h2 class="section-title">Liste</h2><div id="ev-list"></div></main>`}
-async function initEvents(){await loadBaseData();document.getElementById('ev-team').innerHTML=teamSelect('ev-team-select');document.getElementById('ev-list').innerHTML=`<div class="list">${fcbbEvents.map(e=>`<div class="card"><div class="row"><strong>${escapeHtml(teamName(e.equipe_id))}</strong><span class="badge ${e.type==='match'?'yellow':'blue'}">${e.type==='match'?'Match':'Entraînement'}</span></div><p>${e.type==='match'?`vs ${escapeHtml(e.adversaire||'')}`:'Entraînement'}<br><span class="muted">${fmtDate(e.date_heure)} • ${escapeHtml(e.lieu||'')}</span></p></div>`).join('')||'<div class="card">Aucun événement.</div>'}</div>`}
+async function initEvents(){
+
+  await loadBaseData();
+
+  document.getElementById('ev-team').innerHTML =
+    teamSelect('ev-team-select');
+
+  const list =
+    document.getElementById('ev-list');
+
+  if(!fcbbEvents.length){
+
+    list.innerHTML = `
+      <div class="card">
+        Aucun événement.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  list.innerHTML = `
+    <div class="list">
+
+      ${fcbbEvents.map(e => {
+
+        const cancelled =
+          e.annule === true;
+
+        return `
+
+          <div class="card event-manager-card
+                      ${cancelled ? 'event-cancelled' : ''}">
+
+            <div class="row">
+
+              <strong>
+                ${escapeHtml(teamName(e.equipe_id))}
+              </strong>
+
+
+              <div class="event-badges">
+
+                <span class="badge
+                  ${e.type === 'match' ? 'yellow' : 'blue'}">
+
+                  ${
+                    e.type === 'match'
+                    ? 'Match'
+                    : 'Entraînement'
+                  }
+
+                </span>
+
+
+                ${
+                  cancelled
+                  ? `
+                    <span class="badge red">
+                      ANNULÉ
+                    </span>
+                  `
+                  : ''
+                }
+
+              </div>
+
+            </div>
+
+
+            <p>
+
+              ${
+                e.type === 'match'
+
+                ? `
+                  vs
+                  ${escapeHtml(
+                    e.adversaire || 'Adversaire'
+                  )}
+                `
+
+                : 'Entraînement'
+              }
+
+              <br>
+
+              <span class="muted">
+                ${fmtDate(e.date_heure)}
+                •
+                ${escapeHtml(e.lieu || 'Lieu non renseigné')}
+              </span>
+
+            </p>
+
+
+            <div class="event-actions">
+
+              <button
+                class="
+                  event-action-btn
+                  ${cancelled ? 'event-reactivate-btn' : 'event-cancel-btn'}
+                "
+                onclick="toggleEventCancelled(
+                  ${e.id},
+                  ${cancelled ? 'false' : 'true'}
+                )">
+
+                ${
+                  cancelled
+                  ? '✅ Réactiver'
+                  : '🚫 Annuler'
+                }
+
+              </button>
+
+
+              <button
+                class="event-action-btn event-delete-btn"
+                onclick="deleteEvent(${e.id})">
+
+                🗑️ Supprimer
+
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join('')}
+
+    </div>
+  `;
+}
+  async function toggleEventCancelled(id, cancelled){
+
+  const message =
+    cancelled
+      ? 'Annuler cet événement ?'
+      : 'Réactiver cet événement ?';
+
+  if(!confirm(message)){
+    return;
+  }
+
+  try{
+
+    const response =
+      await sbFetch(
+        `/rest/v1/evenements?id=eq.${id}`,
+        {
+          method:'PATCH',
+          headers:{
+            'Content-Type':'application/json',
+            'Prefer':'return=minimal'
+          },
+          body:JSON.stringify({
+            annule:cancelled
+          })
+        }
+      );
+
+    if(!response.ok){
+
+      let errorMessage =
+        'Impossible de modifier cet événement.';
+
+      try{
+        const error =
+          await response.json();
+
+        errorMessage =
+          error.message ||
+          error.details ||
+          errorMessage;
+      }catch(_){}
+
+      throw new Error(errorMessage);
+    }
+
+    await initEvents();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }
+
+}
+
+
+async function deleteEvent(id){
+
+  const event =
+    fcbbEvents.find(
+      e => Number(e.id) === Number(id)
+    );
+
+  const label =
+    event
+      ? eventLabel(event)
+      : `Événement #${id}`;
+
+  const confirmed =
+    confirm(
+      `Supprimer définitivement :\n\n${label}\n\nCette action est irréversible.`
+    );
+
+  if(!confirmed){
+    return;
+  }
+
+  try{
+
+    const relatedTables = [
+      'disponibilites',
+      'convocations',
+      'compositions',
+      'statistiques_match',
+      'notes_joueurs',
+      'resultats'
+    ];
+
+    for(const table of relatedTables){
+
+      const response =
+        await sbFetch(
+          `/rest/v1/${table}?evenement_id=eq.${id}`,
+          {
+            method:'DELETE',
+            headers:{
+              'Prefer':'return=minimal'
+            }
+          }
+        );
+
+      if(!response.ok){
+
+        let errorMessage =
+          `Erreur lors du nettoyage de ${table}.`;
+
+        try{
+          const error =
+            await response.json();
+
+          errorMessage =
+            error.message ||
+            error.details ||
+            errorMessage;
+        }catch(_){}
+
+        throw new Error(errorMessage);
+      }
+    }
+
+    const eventResponse =
+      await sbFetch(
+        `/rest/v1/evenements?id=eq.${id}`,
+        {
+          method:'DELETE',
+          headers:{
+            'Prefer':'return=minimal'
+          }
+        }
+      );
+
+    if(!eventResponse.ok){
+
+      let errorMessage =
+        'Impossible de supprimer l’événement.';
+
+      try{
+        const error =
+          await eventResponse.json();
+
+        errorMessage =
+          error.message ||
+          error.details ||
+          errorMessage;
+      }catch(_){}
+
+      throw new Error(errorMessage);
+    }
+
+    alert('Événement supprimé ✅');
+
+    await initEvents();
+
+  }catch(error){
+
+    alert(error.message);
+
+  }
+
+      }
 async function saveEvent(){const msg=document.getElementById('ev-msg'),type=document.getElementById('ev-type').value,team=document.getElementById('ev-team-select').value,date=document.getElementById('ev-date').value;if(!team||!date){msg.textContent='Équipe et date obligatoires.';return}const payload={equipe_id:Number(team),type,date_heure:new Date(date).toISOString(),lieu:document.getElementById('ev-place').value.trim()||null,titre:type==='match'?'Match':'Entraînement',adversaire:type==='match'?(document.getElementById('ev-opp').value.trim()||null):null,domicile:type==='match'?document.getElementById('ev-home').value==='true':null};const r=await sbFetch('/rest/v1/evenements',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(payload)});if(!r.ok){const e=await r.json();msg.textContent=e.message||'Erreur';return}msg.textContent='Événement créé ✅';await initEvents()}
 
 function managerAttendancePage(){return `${managerHeader('Présences','Présents / Absents / Non répondu')}<main class="page"><div class="card"><div id="att-select"></div></div><div id="att-view" style="margin-top:14px"></div></main>`}
