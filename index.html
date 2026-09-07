@@ -1202,7 +1202,23 @@ function managerHeader(title,sub=''){return `<header class="hero"><div class="ro
 
 function managerEventsPage(){return `${managerHeader('Événements','Entraînements et matchs')}<main class="page"><div class="card">
 <div class="form-group"><label>Type</label><select id="ev-type" onchange="document.getElementById('ev-match').classList.toggle('hidden',this.value!=='match')"><option value="entrainement">Entraînement</option><option value="match">Match</option></select></div>
-<div class="form-group"><label>Équipe</label><div id="ev-team"></div></div><div class="form-group"><label>Date et heure</label><input id="ev-date" type="datetime-local"></div><div class="form-group"><label>Lieu</label><input id="ev-place"></div>
+<div class="form-group">
+
+  <label>
+    Équipe(s)
+  </label>
+
+  <div id="ev-team"></div>
+
+  <div
+    id="ev-team-help"
+    class="muted"
+    style="margin-top:6px">
+    Pour un entraînement, tu peux sélectionner plusieurs équipes.
+    Pour un match, sélectionne une seule équipe.
+  </div>
+
+</div><div class="form-group"><label>Date et heure</label><input id="ev-date" type="datetime-local"></div><div class="form-group"><label>Lieu</label><input id="ev-place"></div>
 <div id="ev-match" class="hidden"><div class="form-group"><label>Adversaire</label><input id="ev-opp"></div><div class="form-group"><label>Domicile/extérieur</label><select id="ev-home"><option value="true">Domicile</option><option value="false">Extérieur</option></select></div></div>
 <div id="ev-msg" class="muted"></div><button class="btn-primary" style="width:100%;margin-top:10px" onclick="saveEvent()">Créer</button></div><h2 class="section-title">Liste</h2><div id="ev-list"></div></main>`}
 async function initEvents(){
