@@ -723,7 +723,184 @@ input:focus,select:focus{
   .club-title{font-size:17px}
   .brand-motto{font-size:11px}
 }
+<style>
 
+/* ===== PAGE CLUB FCB ===== */
+
+.club-page-banner{
+  display:block;
+  width:100%;
+  border-radius:28px;
+  margin-bottom:18px;
+  box-shadow:0 12px 30px rgba(8,26,74,.15);
+}
+
+.club-identity{
+  display:flex;
+  align-items:center;
+  gap:18px;
+}
+
+.club-page-logo{
+  width:96px;
+  height:96px;
+  object-fit:contain;
+}
+
+.club-page-kicker{
+  color:var(--blue2);
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+
+.club-identity h2{
+  margin:4px 0;
+  color:var(--navy);
+}
+
+
+.club-info-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+
+.club-info-grid div{
+  background:#f7f9ff;
+  border-radius:18px;
+  padding:16px;
+}
+
+.club-info-grid span{
+  font-size:24px;
+  display:block;
+  margin-bottom:7px;
+}
+
+.club-info-grid strong{
+  display:block;
+  color:var(--navy);
+}
+
+.club-info-grid p{
+  margin:4px 0 0;
+  color:#7583a7;
+}
+
+
+.club-story p{
+  line-height:1.6;
+}
+
+
+.club-values{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.club-value-card{
+  background:white;
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 10px 26px rgba(8,26,74,.08);
+}
+
+.club-value-icon{
+  font-size:30px;
+  margin-bottom:8px;
+}
+
+.club-value-card strong{
+  color:var(--navy);
+  font-size:18px;
+}
+
+.club-value-card p{
+  color:#7683a5;
+  font-size:13px;
+  line-height:1.45;
+}
+
+
+.club-team-line{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:13px 0;
+  border-bottom:1px solid #eef1f8;
+}
+
+.club-team-line:last-child{
+  border-bottom:0;
+}
+
+
+.club-contact-card{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+}
+
+.club-contact-icon{
+  font-size:38px;
+}
+
+
+.club-contact-row{
+  display:flex;
+  gap:14px;
+  padding:12px 0;
+  border-bottom:1px solid #eef1f8;
+}
+
+.club-contact-row:last-child{
+  border-bottom:0;
+}
+
+.club-contact-row span{
+  font-size:24px;
+}
+
+.club-contact-row p{
+  margin:4px 0 0;
+  color:#7583a7;
+}
+
+
+.club-motto{
+  text-align:center;
+  margin-top:26px;
+  padding:26px;
+  background:var(--navy);
+  color:var(--yellow);
+  border-radius:26px;
+}
+
+.club-motto img{
+  width:86px;
+  height:86px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto 12px;
+}
+
+.club-motto strong{
+  font-size:20px;
+  letter-spacing:.8px;
+}
+
+
+@media(max-width:370px){
+
+  .club-values{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
 </style>
 </head>
 <body>
@@ -2352,6 +2529,285 @@ async function loadPublicRankings(){
   }
 
 }
+  function clubPage(){
+
+  return `
+    <header class="hero">
+
+      <button
+        class="top-back"
+        onclick="go('home')">
+        ← Retour
+      </button>
+
+      <h1>Le Club</h1>
+
+      <p>
+        Histoire, valeurs et identité du FCB
+      </p>
+
+    </header>
+
+    <main class="page">
+
+
+      <img
+        src="./banniere-fcb.jpg"
+        class="club-page-banner"
+        alt="FC Bouvigny-Boyeffles">
+
+
+      <section class="card club-identity">
+
+        <img
+          src="./club-logo.png"
+          class="club-page-logo"
+          alt="Logo FCB">
+
+        <div>
+
+          <div class="club-page-kicker">
+            FCB
+          </div>
+
+          <h2>
+            FC Bouvigny-Boyeffles
+          </h2>
+
+          <p class="muted">
+            Ensemble, plus forts.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <section class="card club-info-grid">
+
+        <div>
+          <span>📅</span>
+          <strong>Fondé en</strong>
+          <p>À compléter</p>
+        </div>
+
+        <div>
+          <span>📍</span>
+          <strong>Ville</strong>
+          <p>Bouvigny-Boyeffles</p>
+        </div>
+
+        <div>
+          <span>🎨</span>
+          <strong>Couleurs</strong>
+          <p>Bleu & Jaune</p>
+        </div>
+
+        <div>
+          <span>⚽</span>
+          <strong>Club</strong>
+          <p>Football</p>
+        </div>
+
+      </section>
+
+
+      <h2 class="section-title">
+        Notre histoire
+      </h2>
+
+      <section class="card club-story">
+
+        <p>
+          Le FC Bouvigny-Boyeffles est un club
+          de football ancré dans la vie locale.
+        </p>
+
+        <p class="muted">
+          À compléter :
+          ajoute ici l'histoire du club,
+          sa date de création, les grandes étapes,
+          les anciens présidents, les montées,
+          les titres ou les moments importants.
+        </p>
+
+        <p>
+          Depuis sa création, le club rassemble
+          joueurs, dirigeants, bénévoles et
+          supporters autour d'une même passion :
+          le football.
+        </p>
+
+      </section>
+
+
+      <h2 class="section-title">
+        Nos valeurs
+      </h2>
+
+      <div class="club-values">
+
+        <div class="club-value-card">
+          <div class="club-value-icon">💙</div>
+          <strong>Fierté</strong>
+          <p>
+            Représenter le club et notre commune
+            avec fierté.
+          </p>
+        </div>
+
+
+        <div class="club-value-card">
+          <div class="club-value-icon">⚽</div>
+          <strong>Passion</strong>
+          <p>
+            Partager l'amour du football
+            à tous les niveaux.
+          </p>
+        </div>
+
+
+        <div class="club-value-card">
+          <div class="club-value-icon">🤝</div>
+          <strong>Respect</strong>
+          <p>
+            Respect des joueurs, éducateurs,
+            arbitres, adversaires et supporters.
+          </p>
+        </div>
+
+
+        <div class="club-value-card">
+          <div class="club-value-icon">💛</div>
+          <strong>Solidarité</strong>
+          <p>
+            Grandir ensemble,
+            sur et en dehors du terrain.
+          </p>
+        </div>
+
+      </div>
+
+
+      <h2 class="section-title">
+        Nos équipes
+      </h2>
+
+      <section class="card">
+
+        <div class="club-team-line">
+          <span>⚽</span>
+          <strong>Senior A</strong>
+        </div>
+
+        <div class="club-team-line">
+          <span>⚽</span>
+          <strong>Senior B</strong>
+        </div>
+
+        <div class="club-team-line">
+          <span>⚽</span>
+          <strong>Senior Féminine</strong>
+        </div>
+
+        <div class="club-team-line">
+          <span>⚽</span>
+          <strong>Vétérans</strong>
+        </div>
+
+      </section>
+
+
+      <h2 class="section-title">
+        Notre stade
+      </h2>
+
+      <section class="card club-contact-card">
+
+        <div class="club-contact-icon">
+          🏟️
+        </div>
+
+        <div>
+          <strong>
+            Nom du stade
+          </strong>
+
+          <p class="muted">
+            À compléter
+          </p>
+
+          <strong>
+            Adresse
+          </strong>
+
+          <p class="muted">
+            À compléter
+          </p>
+        </div>
+
+      </section>
+
+
+      <h2 class="section-title">
+        Contact
+      </h2>
+
+      <section class="card">
+
+        <div class="club-contact-row">
+          <span>🌐</span>
+          <div>
+            <strong>Site internet</strong>
+            <p>À compléter</p>
+          </div>
+        </div>
+
+        <div class="club-contact-row">
+          <span>📘</span>
+          <div>
+            <strong>Facebook</strong>
+            <p>À compléter</p>
+          </div>
+        </div>
+
+        <div class="club-contact-row">
+          <span>📸</span>
+          <div>
+            <strong>Instagram</strong>
+            <p>À compléter</p>
+          </div>
+        </div>
+
+        <div class="club-contact-row">
+          <span>✉️</span>
+          <div>
+            <strong>Email</strong>
+            <p>À compléter</p>
+          </div>
+        </div>
+
+      </section>
+
+
+      <section class="club-motto">
+
+        <img
+          src="./club-logo.png"
+          alt="FCB">
+
+        <strong>
+          ENSEMBLE, PLUS FORTS !
+        </strong>
+
+      </section>
+
+
+    </main>
+
+    ${nav('club')}
+  `;
+  }
 function render(){
   let html='';
   if(state.page==='home') html=home();
@@ -2370,7 +2826,7 @@ function render(){
   else if(state.page==='matches') html=publicMatchesPage();
   else if(state.page==='teams') html=generic('Équipes',teams.join(' • '));
   else if(state.page==='rankings') html=publicRankingsPage();
-  else if(state.page==='club') html=generic('Le Club',"Histoire du FC Bouvigny-Boyeffles, valeurs du club et informations pratiques.");
+  else if(state.page==='club') html=clubPage();
   document.getElementById('app').innerHTML=`<div class="app-shell">${html}</div>`;
   window.scrollTo(0,0);
   if(state.page==='matches') setTimeout(loadPublicMatches,0);
