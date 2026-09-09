@@ -1188,6 +1188,7 @@ let fcbbPlayers = [];
 let fcbbEvents = [];
 let fcbbEventTeams = [];
 
+
 async function loadBaseData(){
 
   const [tr, pr, er, etr] = await Promise.all([
@@ -1248,32 +1249,44 @@ async function loadBaseData(){
   fcbbEvents = e;
   fcbbEventTeams = et;
 }
-function teamName(id){return fcbbTeams.find(t=>t.id===id)?.nom||'Équipe'}
-  function eventTeamIds(eventId){
 
-  const ids =
-    fcbbEventTeams
-      .filter(row =>
+
+function teamName(id){
+
+  return (
+    fcbbTeams.find(
+      team =>
+        Number(team.id) === Number(id)
+    )?.nom || 'Équipe'
+  );
+
+}
+
+
+function eventTeamIds(eventId){
+
+  return fcbbEventTeams
+    .filter(
+      row =>
         Number(row.evenement_id) ===
         Number(eventId)
-      )
-      .map(row =>
+    )
+    .map(
+      row =>
         Number(row.equipe_id)
-      );
+    );
 
-  return ids;
 }
 
 
 function eventTeamNames(eventId){
 
-  const ids =
-    eventTeamIds(eventId);
-
-  return ids
+  return eventTeamIds(eventId)
     .map(id => teamName(id))
     .join(' + ');
+
 }
+
 function fmtDate(v){return v?new Date(v).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'}):''}
 function eventLabel(e){return `${teamName(e.equipe_id)} • ${e.type==='match'?(e.adversaire||'Match'):'Entraînement'} • ${fmtDate(e.date_heure)}`}
 function eventSelect(events,id){return `<select id="${id}"><option value="">Choisir</option>${events.map(e=>`<option value="${e.id}">${escapeHtml(eventLabel(e))}</option>`).join('')}</select>`}
