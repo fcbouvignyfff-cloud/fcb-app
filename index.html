@@ -1182,18 +1182,98 @@ function managerDashboard(){
   <main class="page"><div class="grid-2">${items.map(([label,target])=>`<button class="tile blue" style="border:0;text-align:left" onclick="go('${target}')">${label}</button>`).join('')}</div></main>${nav('home')}`;
 }
 
-let fcbbTeams=[], fcbbPlayers=[], fcbbEvents=[];
 async function loadBaseData(){
-  const [tr,pr,er]=await Promise.all([
-    sbFetch('/rest/v1/equipes?select=id,nom&actif=eq.true&order=nom.asc'),
-    sbFetch('/rest/v1/joueurs?select=id,prenom,nom,numero,poste,photo_url,actif,user_id,equipe_id&actif=eq.true&order=nom.asc,prenom.asc'),
-    sbFetch('/rest/v1/evenements?select=*&order=date_heure.desc')
+  let fcbbTeams = [];
+let fcbbPlayers = [];
+let fcbbEvents = [];
+let fcbbEventTeams = [];
+
+async function loadBaseData(){
+
+  const [tr, pr, er, etr] = await Promise.all([
+
+    sbFetch(
+      '/rest/v1/equipes?select=id,nom&actif=eq.true&order=nom.asc'
+    ),
+
+    sbFetch(
+      '/rest/v1/joueurs?select=id,prenom,nom,numero,poste,photo_url,actif,user_id,equipe_id&actif=eq.true&order=nom.asc,prenom.asc'
+    ),
+
+    sbFetch(
+      '/rest/v1/evenements?select=*&order=date_heure.desc'
+    ),
+
+    sbFetch(
+      '/rest/v1/evenement_equipes?select=evenement_id,equipe_id'
+    )
+
   ]);
-  const t=await tr.json(),p=await pr.json(),e=await er.json();
-  if(!tr.ok) throw new Error(t.message||'Erreur équipes'); if(!pr.ok) throw new Error(p.message||'Erreur joueurs'); if(!er.ok) throw new Error(e.message||'Erreur événements');
-  fcbbTeams=t;fcbbPlayers=p;fcbbEvents=e;
+
+
+  const t = await tr.json();
+  const p = await pr.json();
+  const e = await er.json();
+  const et = await etr.json();
+
+
+  if(!tr.ok){
+    throw new Error(
+      t.message || 'Erreur équipes'
+    );
+  }
+
+  if(!pr.ok){
+    throw new Error(
+      p.message || 'Erreur joueurs'
+    );
+  }
+
+  if(!er.ok){
+    throw new Error(
+      e.message || 'Erreur événements'
+    );
+  }
+
+  if(!etr.ok){
+    throw new Error(
+      et.message ||
+      'Erreur associations événements/équipes'
+    );
+  }
+
+
+  fcbbTeams = t;
+  fcbbPlayers = p;
+  fcbbEvents = e;
+  fcbbEventTeams = et;
 }
 function teamName(id){return fcbbTeams.find(t=>t.id===id)?.nom||'Équipe'}
+  function eventTeamIds(eventId){
+
+  const ids =
+    fcbbEventTeams
+      .filter(row =>
+        Number(row.evenement_id) ===
+        Number(eventId)
+      )
+      .map(row =>
+        Number(row.equipe_id)
+      );
+
+  return ids;
+}
+
+
+function eventTeamNames(eventId){
+
+  const ids =
+    eventTeamIds(eventId);
+
+  return ids
+    .map(id => teamName(id))
+    .join(' + ');
+}
 function fmtDate(v){return v?new Date(v).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'}):''}
 function eventLabel(e){return `${teamName(e.equipe_id)} • ${e.type==='match'?(e.adversaire||'Match'):'Entraînement'} • ${fmtDate(e.date_heure)}`}
 function eventSelect(events,id){return `<select id="${id}"><option value="">Choisir</option>${events.map(e=>`<option value="${e.id}">${escapeHtml(eventLabel(e))}</option>`).join('')}</select>`}
