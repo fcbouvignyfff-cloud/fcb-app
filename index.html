@@ -1182,7 +1182,6 @@ function managerDashboard(){
   <main class="page"><div class="grid-2">${items.map(([label,target])=>`<button class="tile blue" style="border:0;text-align:left" onclick="go('${target}')">${label}</button>`).join('')}</div></main>${nav('home')}`;
 }
 
-async function loadBaseData(){
   let fcbbTeams = [];
 let fcbbPlayers = [];
 let fcbbEvents = [];
