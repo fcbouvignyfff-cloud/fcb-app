@@ -1291,7 +1291,31 @@ function eventLabel(e){return `${teamName(e.equipe_id)} • ${e.type==='match'?(
 function eventSelect(events,id){return `<select id="${id}"><option value="">Choisir</option>${events.map(e=>`<option value="${e.id}">${escapeHtml(eventLabel(e))}</option>`).join('')}</select>`}
 function teamSelect(id){return `<select id="${id}"><option value="">Choisir</option>${fcbbTeams.map(t=>`<option value="${t.id}">${escapeHtml(t.nom)}</option>`).join('')}</select>`}
 function managerHeader(title,sub=''){return `<header class="hero"><div class="row"><button class="top-back" onclick="go('manager')">← Espace dirigeant</button><button class="top-back" onclick="logout()">Déconnexion</button></div><h1>${title}</h1>${sub?`<p>${sub}</p>`:''}</header>`}
+    function eventTeamCheckboxes(){
 
+  return `
+    <div class="event-team-grid">
+
+      ${fcbbTeams.map(team => `
+
+        <label class="event-team-choice">
+
+          <input
+            type="checkbox"
+            class="ev-team-check"
+            value="${team.id}">
+
+          <span>
+            ${escapeHtml(team.nom)}
+          </span>
+
+        </label>
+
+      `).join('')}
+
+    </div>
+  `;
+    }
 function managerEventsPage(){return `${managerHeader('Événements','Entraînements et matchs')}<main class="page"><div class="card">
 <div class="form-group"><label>Type</label><select id="ev-type" onchange="document.getElementById('ev-match').classList.toggle('hidden',this.value!=='match')"><option value="entrainement">Entraînement</option><option value="match">Match</option></select></div>
 <div class="form-group">
@@ -1537,6 +1561,7 @@ async function deleteEvent(id){
       'statistiques_match',
       'notes_joueurs',
       'resultats'
+      'evenement_equipes'
     ];
 
     for(const table of relatedTables){
@@ -1914,31 +1939,7 @@ async function loadManagerPlayers(){
     managerPlayersCache = players;
     managerTeamsCache = teams;
     renderTeamSelect();
-    function eventTeamCheckboxes(){
 
-  return `
-    <div class="event-team-grid">
-
-      ${fcbbTeams.map(team => `
-
-        <label class="event-team-choice">
-
-          <input
-            type="checkbox"
-            class="ev-team-check"
-            value="${team.id}">
-
-          <span>
-            ${escapeHtml(team.nom)}
-          </span>
-
-        </label>
-
-      `).join('')}
-
-    </div>
-  `;
-}
 
     if(players.length === 0){
       list.innerHTML = `<div class="card"><strong>Aucun joueur pour le moment.</strong><p class="muted">Appuie sur “Ajouter un joueur”.</p></div>`;
@@ -2725,18 +2726,20 @@ async function loadPublicMatches(){
 
 
     const prochains =
-      matches
-        .filter(m =>
-          new Date(m.date_heure) >= maintenant
-        )
-        .slice(0,10);
+  matches
+    .filter(m =>
+      m.annule !== true &&
+      new Date(m.date_heure) >= maintenant
+    )
+    .slice(0,10);
 
 
     const termines =
       matches
         .filter(m =>
-          resultsMap[m.id]
-        )
+  m.annule !== true &&
+  resultsMap[m.id]
+)
         .sort(
           (a,b) =>
             new Date(b.date_heure) -
@@ -2910,6 +2913,7 @@ async function loadPublicRankings(){
           matches.filter(match =>
             Number(match.equipe_id) ===
             Number(equipe.id) &&
+            match.annule !== true &&
             resultMap[Number(match.id)]
           );
 
