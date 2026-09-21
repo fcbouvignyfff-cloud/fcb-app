@@ -1374,7 +1374,7 @@ async function initEvents(){
             <div class="row">
 
               <strong>
-                ${escapeHtml(teamName(e.equipe_id))}
+                ${escapeHtml(eventTeamNames(e.id) || teamName(e.equipe_id))}
               </strong>
 
 
