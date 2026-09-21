@@ -1235,6 +1235,12 @@ async function loadBaseData(){
     );
   }
 
+  if(!etr.ok){
+  throw new Error(
+    et.message || 'Erreur associations événements/équipes'
+  );
+  }
+  
 
   fcbbTeams = t;
   fcbbPlayers = p;
