@@ -3464,7 +3464,7 @@ function render(){
   else if(state.page==='teams') html=generic('Équipes',teams.join(' • '));
   else if(state.page==='rankings') html=publicRankingsPage();
   else if(state.page==='club')
-  html=home();
+  html=clubPage();
   document.getElementById('app').innerHTML=`<div class="app-shell">${html}</div>`;
   window.scrollTo(0,0);
   if(state.page==='matches') setTimeout(loadPublicMatches,0);
