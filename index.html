@@ -1190,7 +1190,7 @@ let fcbbEventTeams = [];
 
 async function loadBaseData(){
 
-  const [tr, pr, er] = await Promise.all([
+  const [tr, pr, er, etr] = await Promise.all([
 
     sbFetch(
       '/rest/v1/equipes?select=id,nom&actif=eq.true&order=nom.asc'
@@ -1204,13 +1204,18 @@ async function loadBaseData(){
       '/rest/v1/evenements?select=*&order=date_heure.desc'
     ),
 
+    sbFetch(
+  '/rest/v1/evenement_equipes?select=evenement_id,equipe_id'
+),
+    
   ]);
 
 
   const t = await tr.json();
   const p = await pr.json();
   const e = await er.json();
-
+  const et = await etr.json();
+  
 
   if(!tr.ok){
     throw new Error(
@@ -1234,7 +1239,7 @@ async function loadBaseData(){
   fcbbTeams = t;
   fcbbPlayers = p;
   fcbbEvents = e;
-  fcbbEventTeams  = [];
+  fcbbEventTeams = et;
 }
 
 
