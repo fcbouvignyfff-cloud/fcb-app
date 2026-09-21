@@ -1204,17 +1204,12 @@ async function loadBaseData(){
       '/rest/v1/evenements?select=*&order=date_heure.desc'
     ),
 
-    sbFetch(
-      '/rest/v1/evenement_equipes?select=evenement_id,equipe_id'
-    )
-
   ]);
 
 
   const t = await tr.json();
   const p = await pr.json();
   const e = await er.json();
-  const et = await etr.json();
 
 
   if(!tr.ok){
@@ -1235,18 +1230,11 @@ async function loadBaseData(){
     );
   }
 
-  if(!etr.ok){
-    throw new Error(
-      et.message ||
-      'Erreur associations événements/équipes'
-    );
-  }
-
 
   fcbbTeams = t;
   fcbbPlayers = p;
   fcbbEvents = e;
-  fcbbEventTeams = et;
+  fcbbEventTeams = [];
 }
 
 
