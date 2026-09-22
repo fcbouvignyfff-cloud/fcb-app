@@ -1204,9 +1204,7 @@ async function loadBaseData(){
       '/rest/v1/evenements?select=*&order=date_heure.desc'
     ),
 
-    sbFetch(
-  '/rest/v1/evenement_equipes?select=evenement_id,equipe_id'
-),
+     Promise.resolve({ ok: true, json: async () => [] }),
     
   ]);
 
