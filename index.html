@@ -3507,7 +3507,10 @@ window.addEventListener('appinstalled', () => {
   document.getElementById('fcb-install-btn')?.classList.add('hidden');
 });
 window.addEventListener('load', () => {
-  setTimeout(() => document.getElementById('fcb-splash')?.classList.add('hide'), 650);
+  setTimeout(() => {
+  const splash = document.getElementById('fcb-splash');
+  if (splash) splash.style.display = 'none';
+}, 650);;
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
   }
