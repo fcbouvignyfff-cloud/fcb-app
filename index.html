@@ -2700,8 +2700,7 @@ async function loadPublicMatches(){
         ),
 
         publicApi(
-          '/rest/v1/evenements?select=id,equipe_id,type,date_heure,lieu,adversaire,domicile,titre&type=eq.match&order=date_heure.asc'
-        ),
+          '/rest/v1/evenements?select=id,equipe_id,type,date_heure,lieu,adversaire,domicile,titre,annule&type=eq.match&order=date_heure.asc'
 
         publicApi(
           '/rest/v1/resultats?select=evenement_id,score_fcbb,score_adversaire'
